@@ -7,6 +7,11 @@ export default function App() {
   const [editing, setEditing] = useState({});
   const [error, setError] = useState('');
 
+  const syncBooks = async () => {
+    const items = await getBooks();
+    setBooks(Array.isArray(items) ? items : []);
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -43,7 +48,7 @@ export default function App() {
 
     try {
       await createBook(trimmedName);
-      setBooks((prev) => [...prev, { id: Date.now(), name: trimmedName }]);
+      await syncBooks();
       setName('');
     } catch (err) {
       setError(err.message);
@@ -55,7 +60,7 @@ export default function App() {
 
     try {
       await deleteBook(id);
-      setBooks((prev) => prev.filter((book) => book.id !== id));
+      await syncBooks();
     } catch (err) {
       setError(err.message);
     }
@@ -71,9 +76,7 @@ export default function App() {
 
     try {
       await updateBook(id, newName);
-      setBooks((prev) =>
-        prev.map((book) => (book.id === id ? { ...book, name: newName } : book))
-      );
+      await syncBooks();
       setEditing((prev) => {
         const next = { ...prev };
         delete next[id];
