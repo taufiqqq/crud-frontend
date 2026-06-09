@@ -19,6 +19,17 @@ export async function createBook(name) {
   return response;
 }
 
+export async function getBooks() {
+  ensureBaseUrl();
+  const response = await fetch(`${API_BASE_URL}/books`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch books');
+  }
+
+  return response.json();
+}
+
 export async function deleteBook(id) {
   ensureBaseUrl();
   const response = await fetch(`${API_BASE_URL}/delete/${id}`, {

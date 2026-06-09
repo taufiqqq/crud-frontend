@@ -1,11 +1,36 @@
-import { useState } from 'react';
-import { createBook, deleteBook, updateBook } from './api';
+import { useEffect, useState } from 'react';
+import { createBook, deleteBook, getBooks, updateBook } from './api';
 
 export default function App() {
   const [books, setBooks] = useState([]);
   const [name, setName] = useState('');
   const [editing, setEditing] = useState({});
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBooks = async () => {
+      setError('');
+
+      try {
+        const items = await getBooks();
+        if (isMounted) {
+          setBooks(Array.isArray(items) ? items : []);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message);
+        }
+      }
+    };
+
+    loadBooks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const addBook = async (event) => {
     event.preventDefault();
@@ -49,7 +74,11 @@ export default function App() {
       setBooks((prev) =>
         prev.map((book) => (book.id === id ? { ...book, name: newName } : book))
       );
-      setEditing((prev) => ({ ...prev, [id]: '' }));
+      setEditing((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
     } catch (err) {
       setError(err.message);
     }
